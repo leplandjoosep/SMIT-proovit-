@@ -37,4 +37,15 @@ public class BikePartController {
         return HttpResponse.created(body)
                 .headers(h -> h.location(URI.create("/api/parts/" + body.id())));
     }
+
+    @Delete("/{id}")
+    public HttpResponse<?> delete(@PathVariable UUID id) {
+        service.delete(id);
+        return HttpResponse.noContent();
+    }
+
+    @Put("/{id}")
+    public BikePartDTO update(UUID id, @Body @Valid BikePartDTO dto) {
+        return mapper.toDto(service.update(id, dto));
+    }
 }

@@ -55,4 +55,35 @@ public class VinylRecordService {
         String normalized = java.text.Normalizer.normalize(s.trim().toLowerCase(), java.text.Normalizer.Form.NFD);
         return normalized.replaceAll("\\p{M}+", "");
     }
+
+    public void delete(UUID id) {
+        if (!repo.existsById(id)) {
+            throw new HttpStatusException(HttpStatus.NOT_FOUND, "Vinyl not found");
+        }
+        repo.deleteById(id);
+    }
+
+    public VinylRecord update(UUID id, VinylRecordDTO dto) {
+        VinylRecord v = getById(id);
+
+        v.setTitle(dto.title());
+        v.setArtist(dto.artist());
+        v.setReleaseYear(dto.releaseYear());
+        v.setAcquiredFrom(dto.acquiredFrom());
+        v.setAcquiredDate(dto.acquiredDate());
+        v.setLocation(dto.location());
+        v.setNotes(dto.notes());
+
+        String fp = computeFingerprint(v);
+        if (!fp.equals(v.getFingerprint())) {
+            repo.findByFingerprint(fp).ifPresent(other -> {
+                if (!other.getId().equals(id)) {
+                    throw new HttpStatusException(HttpStatus.CONFLICT, "Duplicate vinyl (artist+title+year)");
+                }
+            });
+            v.setFingerprint(fp);
+        }
+
+        return repo.update(v);
+    }
 }

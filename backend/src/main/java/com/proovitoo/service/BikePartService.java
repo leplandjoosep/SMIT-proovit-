@@ -37,4 +37,28 @@ public class BikePartService {
 
         return repo.save(entity);
     }
+
+    public void delete(UUID id) {
+        if (!repo.existsById(id)) {
+            throw new HttpStatusException(HttpStatus.NOT_FOUND, "Bike Part not found");
+        }
+        repo.deleteById(id);
+    }
+
+    public BikePart update(UUID id, BikePartDTO dto) {
+        BikePart p = getPartById(id);
+        p.setName(dto.name());
+        p.setBrand(dto.brand());
+        p.setCategory(dto.category());
+        p.setLocation(dto.location());
+        p.setNotes(dto.notes());
+
+        int q = dto.quantity();
+        if (q <= 0) {
+            q = 1;
+        }
+        p.setQuantity(q);
+
+        return repo.update(p);
+    }
 }

@@ -36,4 +36,15 @@ public class VinylRecordController {
         return HttpResponse.created(body)
                 .headers(h -> h.location(URI.create("/api/vinyls/" + body.id())));
     }
+
+    @Delete("/{id}")
+    public HttpResponse<?> delete(@PathVariable UUID id) {
+        service.delete(id);
+        return HttpResponse.noContent();
+    }
+
+    @Put("/{id}")
+    public VinylRecordDTO update(UUID id, @Body @Valid VinylRecordDTO dto) {
+        return mapper.toDto(service.update(id, dto));
+    }
 }

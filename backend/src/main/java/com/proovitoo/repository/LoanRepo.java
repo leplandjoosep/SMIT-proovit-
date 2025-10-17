@@ -17,4 +17,8 @@ import java.util.UUID;
 public interface LoanRepo extends PageableRepository<Loan, UUID> {
 
     long countByBikePartIdAndReturnedAtIsNull(UUID partId);
+
+    List<Loan> findByBikePartId(UUID bikePartId);
+
+    List<Loan> findByBikePartIdAndReturnedAtIsNull(UUID bikePartId);
 }

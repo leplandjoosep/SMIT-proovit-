@@ -31,11 +31,22 @@ public class LoanController {
         return mapper.toDtoList(service.getAllLoans());
     }
 
+    @Get("/part/{partId}")
+    public List<LoanDTO> getLoansByPart(UUID partId,
+                                        @QueryValue(defaultValue = "true") boolean activeOnly) {
+        return mapper.toDtoList(service.getLoansByPart(partId, activeOnly));
+    }
+
     @Post
     public HttpResponse<LoanDTO> addLoan(@Body @Valid LoanDTO dto) {
         Loan saved = service.addLoan(dto);
         LoanDTO body = mapper.toDto(saved);
         return HttpResponse.created(body)
                 .headers(h -> h.location(URI.create("/api/loan/" + body.id())));
+    }
+
+    @Post("/{id}/return")
+    public LoanDTO returnLoan(UUID id) {
+        return mapper.toDto(service.returnLoan(id));
     }
 }

@@ -55,4 +55,23 @@ public class LoanService {
 
         return loanRepo.save(loan);
     }
+
+    public List<Loan> getLoansByPart(UUID partId, boolean activeOnly) {
+        partRepo.findById(partId).orElseThrow(() ->
+                new HttpStatusException(HttpStatus.NOT_FOUND, "Bike Part not found"));
+
+        return activeOnly
+                ? loanRepo.findByBikePartIdAndReturnedAtIsNull(partId)
+                : loanRepo.findByBikePartId(partId);
+    }
+
+    public Loan returnLoan(UUID loanId) {
+        Loan loan = loanRepo.findById(loanId)
+                .orElseThrow(() -> new HttpStatusException(HttpStatus.NOT_FOUND, "Loan not found"));
+        if (loan.getReturnedAt() != null) {
+            return loan;
+        }
+        loan.setReturnedAt(Instant.now());
+        return loanRepo.update(loan);
+    }
 }
