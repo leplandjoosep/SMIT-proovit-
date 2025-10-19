@@ -8,6 +8,8 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
+import io.micronaut.data.model.Page;
+import io.micronaut.data.model.Pageable;
 
 import java.util.List;
 import java.util.UUID;
@@ -60,5 +62,15 @@ public class BikePartService {
         p.setQuantity(q);
 
         return repo.update(p);
+    }
+
+    public Page<BikePart> search(String q, String category, Pageable pageable) {
+        String qq = (q == null || q.isBlank()) ? null : q;
+        String cc = (category == null || category.isBlank()) ? null : category;
+        return repo.search(qq, cc, pageable);
+    }
+
+    public List<String> listCategories() {
+        return repo.distinctCategories();
     }
 }

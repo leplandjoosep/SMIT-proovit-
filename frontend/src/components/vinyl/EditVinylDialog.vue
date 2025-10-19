@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
+import Modal from '../ui/Modal.vue'
 
 export type VinylForm = {
   id: string
@@ -22,6 +23,10 @@ const emit = defineEmits<{
   (e: 'save', payload: VinylForm): void
 }>()
 
+const open = ref(props.modelValue)
+watch(() => props.modelValue, v => open.value = v)
+watch(open, v => emit('update:modelValue', v))
+
 const form = reactive<VinylForm>({
   id: '',
   title: '',
@@ -39,30 +44,55 @@ watch(
     { immediate: true },
 )
 
-function close() { emit('update:modelValue', false) }
+function close() { open.value = false }
 function save()  { emit('save', { ...form }); close() }
 </script>
 
 <template>
-  <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/30" @click="close"></div>
+  <Modal v-model="open">
+    <template #header>
+      <div>
+        <h3 class="text-lg font-semibold">Muuda plaati</h3>
+        <p class="text-sm text-neutral-500">Tärniga (*) märgitud väljad on kohustuslikud.</p>
+      </div>
+    </template>
 
-    <div class="relative z-10 w-full max-w-lg rounded-2xl bg-white shadow-xl p-5 space-y-3">
-      <h3 class="text-lg font-semibold">Muuda plaati</h3>
-
-      <div class="grid gap-3">
-        <input class="input" placeholder="Pealkiri" v-model="form.title" />
-        <input class="input" placeholder="Artist" v-model="form.artist" />
-        <input class="input" type="number" placeholder="Aasta" v-model.number="form.releaseYear" />
-        <input class="input" placeholder="Päritolu" v-model="form.acquiredFrom" />
-        <input class="input" placeholder="Asukoht" v-model="form.location" />
-        <textarea class="input" rows="3" placeholder="Märkmed" v-model="form.notes" data-gramm="false" />
+    <form @submit.prevent="save" class="grid gap-3">
+      <div>
+        <label class="text-sm">Pealkiri *</label>
+        <input v-model="form.title" required class="input" />
+      </div>
+      <div>
+        <label class="text-sm">Artist *</label>
+        <input v-model="form.artist" required class="input" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-sm">Väljaandmise aasta</label>
+          <input type="number" v-model.number="form.releaseYear" class="input" placeholder="1982" />
+        </div>
+        <div>
+          <label class="text-sm">Soetamise kuupäev</label>
+          <input type="date" v-model="form.acquiredDate" class="input" />
+        </div>
+      </div>
+      <div>
+        <label class="text-sm">Kust soetatud</label>
+        <input v-model="form.acquiredFrom" class="input" placeholder="Tartu Turg" />
+      </div>
+      <div>
+        <label class="text-sm">Asukoht</label>
+        <input v-model="form.location" class="input" placeholder="Riiul B, rida 1" />
+      </div>
+      <div>
+        <label class="text-sm">Märkmed</label>
+        <textarea v-model="form.notes" rows="3" class="input" placeholder="Lisainfo..." />
       </div>
 
       <div class="flex justify-end gap-2 pt-2">
-        <button class="btn" @click="close">Tühista</button>
-        <button class="btn btn-primary" @click="save">Salvesta</button>
+        <button type="button" class="btn btn-outline" @click="close">Tühista</button>
+        <button type="submit" class="btn btn-emerald">Salvesta</button>
       </div>
-    </div>
-  </div>
+    </form>
+  </Modal>
 </template>

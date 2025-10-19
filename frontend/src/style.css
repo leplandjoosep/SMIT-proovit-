@@ -2,6 +2,7 @@
 
 @layer components {
   .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 font-medium transition; }
+  .btn-sm { @apply inline-flex items-center justify-center gap-2 rounded-lg px-2 py-1 text-sm font-medium transition; }
   .btn-primary { @apply bg-indigo-600 text-white hover:bg-indigo-700; }
   .btn-emerald { @apply bg-emerald-600 text-white hover:bg-emerald-700; }
   .btn-outline { @apply border border-neutral-200 bg-white hover:bg-neutral-50; }

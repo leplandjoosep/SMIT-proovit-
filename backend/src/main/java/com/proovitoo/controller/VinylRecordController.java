@@ -4,10 +4,13 @@ import com.proovitoo.DTO.VinylRecordDTO;
 import com.proovitoo.entity.VinylRecord;
 import com.proovitoo.mapper.VinylRecordMapper;
 import com.proovitoo.service.VinylRecordService;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import io.micronaut.data.model.Page;
+import io.micronaut.data.model.Pageable;
 
 import java.net.URI;
 import java.util.List;
@@ -27,6 +30,18 @@ public class VinylRecordController {
     @Get
     public List<VinylRecordDTO> getAllVinyls() {
         return mapper.toDtoList(service.getAllVinyls());
+    }
+
+    @Get("/search")
+    public Page<VinylRecordDTO> search(@QueryValue @Nullable String q,
+                                       @QueryValue @Nullable String artist,
+                                       Pageable pageable) {
+        return service.search(q, artist, pageable).map(mapper::toDto);
+    }
+
+    @Get("/artists")
+    public List<String> artists() {
+        return service.listArtists();
     }
 
     @Post

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
+import Modal from '../ui/Modal.vue'
 
 export type PartForm = {
   id: string
@@ -21,6 +22,10 @@ const emit = defineEmits<{
   (e: 'save', payload: PartForm): void
 }>()
 
+const open = ref(props.modelValue)
+watch(() => props.modelValue, v => open.value = v)
+watch(open, v => emit('update:modelValue', v))
+
 const form = reactive<PartForm>({
   id: '',
   name: '',
@@ -37,30 +42,51 @@ watch(
     { immediate: true },
 )
 
-function close() { emit('update:modelValue', false) }
+function close() { open.value = false }
 function save()  { emit('save', { ...form }); close() }
 </script>
 
 <template>
-  <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/30" @click="close"></div>
+  <Modal v-model="open">
+    <template #header>
+      <div>
+        <h3 class="text-lg font-semibold">Muuda osa</h3>
+        <p class="text-sm text-neutral-500">Tärniga (*) märgitud väljad on kohustuslikud.</p>
+      </div>
+    </template>
 
-    <div class="relative z-10 w-full max-w-lg rounded-2xl bg-white shadow-xl p-5 space-y-3">
-      <h3 class="text-lg font-semibold">Muuda osa</h3>
-
-      <div class="grid gap-3">
-        <input class="input" placeholder="Nimi" v-model="form.name" />
-        <input class="input" placeholder="Bränd" v-model="form.brand" />
-        <input class="input" placeholder="Kategooria" v-model="form.category" />
-        <input class="input" type="number" min="1" placeholder="Kogus" v-model.number="form.quantity" />
-        <input class="input" placeholder="Asukoht" v-model="form.location" />
-        <textarea class="input" rows="3" placeholder="Märkmed" v-model="form.notes" data-gramm="false" />
+    <form @submit.prevent="save" class="grid gap-3">
+      <div>
+        <label class="text-sm">Nimi *</label>
+        <input v-model="form.name" required class="input" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-sm">Bränd</label>
+          <input v-model="form.brand" class="input" placeholder="Shimano" />
+        </div>
+        <div>
+          <label class="text-sm">Kategooria</label>
+          <input v-model="form.category" class="input" placeholder="Pidurid" />
+        </div>
+      </div>
+      <div>
+        <label class="text-sm">Kogus *</label>
+        <input type="number" v-model.number="form.quantity" min="1" class="input" />
+      </div>
+      <div>
+        <label class="text-sm">Asukoht</label>
+        <input v-model="form.location" class="input" placeholder="Garaaž, riiul 2" />
+      </div>
+      <div>
+        <label class="text-sm">Märkmed</label>
+        <textarea v-model="form.notes" rows="3" class="input" placeholder="Lisainfo..." />
       </div>
 
       <div class="flex justify-end gap-2 pt-2">
-        <button class="btn" @click="close">Tühista</button>
-        <button class="btn btn-primary" @click="save">Salvesta</button>
+        <button type="button" class="btn btn-outline" @click="close">Tühista</button>
+        <button type="submit" class="btn btn-primary">Salvesta</button>
       </div>
-    </div>
-  </div>
+    </form>
+  </Modal>
 </template>

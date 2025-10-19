@@ -9,6 +9,8 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
+import io.micronaut.data.model.Page;
+import io.micronaut.data.model.Pageable;
 
 import java.util.List;
 import java.util.UUID;
@@ -85,5 +87,15 @@ public class VinylRecordService {
         }
 
         return repo.update(v);
+    }
+
+    public Page<VinylRecord> search(String q, String artist, Pageable pageable) {
+        String qq = (q == null || q.isBlank()) ? null : q;
+        String aa = (artist == null || artist.isBlank()) ? null : artist;
+        return repo.search(qq, aa, pageable);
+    }
+
+    public List<String> listArtists() {
+        return repo.distinctArtists();
     }
 }

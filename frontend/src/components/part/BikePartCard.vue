@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 import LoanDialog from './LoanDialog.vue'
+import Icon from '../ui/Icons.vue'
 
 type Loan = {
   id: string
@@ -23,7 +24,7 @@ type BikePart = {
 
 const props = defineProps<{
   part: BikePart
-  loans: Loan[]
+  loans?: Loan[]
 }>()
 const emit = defineEmits<{
   (e: 'edit', part: any):void
@@ -31,7 +32,7 @@ const emit = defineEmits<{
   (e: 'updated'): void
 }>()
 
-const loans = ref<Loan[]>([])
+const loans = ref<Loan[]>(props.loans || [])
 const loadingLoans = ref(false)
 const dialogOpen = ref(false)
 
@@ -56,8 +57,16 @@ async function returnLoan(id: string) {
   emit('updated')
 }
 
-onMounted(loadLoans)
-watch(() => props.part.id, loadLoans)
+onMounted(() => {
+  if (!props.loans) {
+    loadLoans()
+  }
+})
+watch(() => props.part.id, () => {
+  if (!props.loans) {
+    loadLoans()
+  }
+})
 
 async function deletePart() {
   if (!confirm(`Kustuta osa "${props.part.name}"?`)) return
@@ -79,83 +88,94 @@ function isOverdue(l: Loan) {
 </script>
 
 <template>
-  <div class="card p-5">
-    <div class="mb-2 flex items-start justify-between gap-2">
-      <div>
-        <h3 class="text-lg font-semibold">{{ part.name }}</h3>
-        <p v-if="part.brand" class="text-sm text-indigo-600">{{ part.brand }}</p>
-      </div>
-      <div class="mb-2 flex items-start justify-between gap-2">
-        <button class="text-neutral-400 hover:text-indigo-600 mr-2" @click="$emit('edit', part)" title="Muuda">
-          ✏️
-        </button>
-        <button class="text-neutral-400 hover:text-red-600" @click="deletePart" title="Kustuta">
-          🗑️
-        </button>
-      </div>
-    </div>
-
-    <div class="mb-3">
-      <div v-if="part.category" class="pill">{{ part.category }}</div>
-    </div>
-
-    <div class="mb-3 text-sm text-neutral-700">
-      <span class="mr-2">Kogus:</span>
-      <span class="inline-flex items-center gap-2">
-        <span class="px-2 py-1">{{ available }}</span>
-        <span class="text-neutral-400">/</span>
-        <span class="px-2 py-1">{{ part.quantity }}</span>
-      </span>
-    </div>
-
-    <div v-if="part.location" class="mb-4 flex items-center gap-2 text-sm text-neutral-600">
-      <span>📍</span>
-      <span>{{ part.location }}</span>
-    </div>
-
-    <hr class="my-3" />
-
-    <div class="mb-2 text-sm font-medium text-neutral-600">Laenutatud:</div>
-
-    <div v-if="loadingLoans" class="text-sm text-neutral-500">Laenude laadimine…</div>
-    <div v-if="!loans.length" class="text-neutral-400 text-sm">
-      Pole laenutusi
-    </div>
-
-    <div
-        v-for="l in loans"
-        :key="l.id"
-        class="flex items-center justify-between gap-3 py-2"
-    >
-      <div class="text-sm">
-        <div class="font-medium">
-          {{ l.borrowerName }}
+  <div class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200/60 p-6 hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+    <div class="relative z-10">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex-1 min-w-0">
+          <h3 class="text-lg font-bold text-gray-900 mb-1 line-clamp-2">{{ part.name }}</h3>
+          <p v-if="part.brand" class="text-sm font-medium text-sky-600">{{ part.brand }}</p>
         </div>
-        <div class="text-neutral-500">
-          <span>võetud: {{ fmt(l.borrowedAt) }}</span>
-          <span v-if="l.dueAt">
-            • tähtaeg:
-            <span :class="{'text-red-600 font-semibold': isOverdue(l)}">
-              {{ fmt(l.dueAt) }}
-            </span>
-          </span>
+        <div class="flex items-center gap-1 ml-3">
+          <button class="p-2 text-gray-400 hover:text-sky-600 hover:bg-sky-100 rounded-lg transition-colors" @click="$emit('edit', part)" title="Muuda">
+            <Icon name="edit" class="w-4 h-4" />
+          </button>
+          <button class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors" @click="deletePart" title="Kustuta">
+            <Icon name="delete" class="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      <button
-          class="btn btn-emerald"
-          title="Tagasta"
-          @click=returnLoan(l.id)
-      >
-        ⬇ Tagasta
-      </button>
-    </div>
+      <div class="flex items-center justify-between mb-4">
+        <div v-if="part.category" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-700 border border-sky-200">
+          {{ part.category }}
+        </div>
+        <div class="flex items-center gap-2 text-sm font-medium">
+          <span class="text-gray-600">Kogus:</span>
+          <div class="flex items-center gap-1 bg-white/70 rounded-lg px-3 py-1 border border-sky-200">
+            <span class="text-sky-600 font-bold">{{ available }}</span>
+            <span class="text-gray-400">/</span>
+            <span class="text-gray-600">{{ part.quantity }}</span>
+          </div>
+        </div>
+      </div>
 
-    <div class="mt-4">
-      <button class="btn btn-outline w-full" :disabled="available === 0" @click="dialogOpen = true">
-        <span>👤</span>
-        Laenuta välja
-      </button>
+      <div v-if="part.location" class="mb-4 flex items-center gap-2 text-sm text-gray-600 bg-white/50 rounded-lg p-2 border border-sky-100">
+        <Icon name="location" class="w-4 h-4 text-sky-500" />
+        <span>{{ part.location }}</span>
+      </div>
+
+      <p v-if="part.notes" class="mb-4 text-sm text-gray-500 italic bg-white/50 rounded-lg p-2 border border-sky-100">
+        {{ part.notes }}
+      </p>
+
+      <div class="border-t border-sky-200/60 pt-4">
+        <div class="mb-3 text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <Icon name="user" class="w-4 h-4 text-sky-500" />
+          Laenutatud
+        </div>
+
+        <div v-if="loadingLoans" class="text-sm text-gray-500 text-center py-2">Laenude laadimine…</div>
+        <div v-if="!loans.length" class="text-gray-400 text-sm text-center py-2 bg-white/50 rounded-lg border border-sky-100">
+          Pole laenutusi
+        </div>
+
+        <div v-for="l in loans" :key="l.id" class="mb-3 p-3 bg-white/70 rounded-lg border border-sky-100">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="font-medium text-gray-900 text-sm mb-1">
+                {{ l.borrowerName }}
+              </div>
+              <div class="text-xs text-gray-500 space-y-1">
+                <div>võetud: {{ fmt(l.borrowedAt) }}</div>
+                <div v-if="l.dueAt" class="flex items-center gap-1">
+                  <span>tähtaeg:</span>
+                  <span :class="{'text-red-600 font-semibold': isOverdue(l)}">
+                    {{ fmt(l.dueAt) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button
+                class="btn btn-emerald text-xs px-3 py-1.5 flex items-center gap-1"
+                title="Tagasta"
+                @click="returnLoan(l.id)"
+            >
+              <Icon name="arrow-down" class="w-3 h-3" />
+              Tagasta
+            </button>
+          </div>
+        </div>
+
+        <button
+          class="w-full btn btn-outline text-sm py-2.5 flex items-center justify-center gap-2" 
+          :disabled="available === 0" 
+          @click="dialogOpen = true"
+          :class="available === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-sky-50'"
+        >
+          <Icon name="user" class="w-4 h-4" />
+          Laenuta välja
+        </button>
+      </div>
     </div>
 
     <LoanDialog :open="dialogOpen" :part-id="part.id"
