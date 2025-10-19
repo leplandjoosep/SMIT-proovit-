@@ -1,5 +1,5 @@
 # Kollektsioonihaldur
 
-Rakenduses saab hallata kahte spetsiifilist kollektsiooni milleks on vinüülid ja ratta osad.
+Rakendus võimaldab hallata kahte erinevat kollektsiooni vinüülplaate ja jalgratta osi.
 
-Mõlema kollektsiooni jaoks on lemas põhi funktsionaalsused ja ka kolektsiooni spetsiifilised funktsionaalsused.
+Mõlema kollektsiooni jaoks on olemas põhilised haldusfunktsioonid (lisamine, vaatamine, muutmine, kustutamine) ning ka spetsiifilised lisafunktsioonid vastavalt kollektsiooni tüübile.
